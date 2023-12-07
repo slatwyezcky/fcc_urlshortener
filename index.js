@@ -1,5 +1,4 @@
 require('dotenv').config();
-const dns = require('dns');
 const bodyParser = require('body-parser');
 const express = require('express');
 const cors = require('cors');
@@ -18,22 +17,21 @@ app.get('/', function (req, res) {
   res.sendFile(process.cwd() + '/views/index.html');
 });
 
-app.post('/api/shorturl/', (req, res, next) => {
-  let original_url = req.body.url;
-
-  dns.resolveAny(original_url, (err) => {
-    if (err) {
-      res.json({
-        error: 'invalid url',
-      });
-    } else {
-      let id = new Date().getTime();
-      data[id] = original_url;
-      res.json({
-        original_url,
-        short_url: id,
-      });
-    }
+app.post('/api/shorturl/', (req, res) => {
+  let { url } = req.body;
+  let pattern = new RegExp(
+    /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/
+  );
+  if (!pattern.test(url)) {
+    return res.json({
+      error: 'invalid url',
+    });
+  }
+  let id = new Date().getTime();
+  data[id] = url;
+  return res.json({
+    original_url: url,
+    short_url: id,
   });
 });
 
